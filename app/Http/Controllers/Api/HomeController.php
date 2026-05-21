@@ -13,6 +13,8 @@ use App\Models\SupCategory;
 use App\Models\supSubCategory;
 use App\Models\VideoModel;
 use App\Models\User;
+use App\Models\ReferralCommission;
+use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -343,6 +345,35 @@ class HomeController extends Controller
         return response()->json([
             'status' => true,
             'data'   => $team
+        ]);
+    }
+
+    public function earnings()
+    {
+        $user = auth()->user();
+
+        $earnings = ReferralCommission::where('user_id', $user->id)
+            ->with('fromUser')
+            ->latest()
+            ->get()
+            ->map(function ($item) {
+
+                return [
+                    'level'      => $item->level,
+
+                    'name'       => $item->fromUser->name ?? '',
+
+                    'plan'       => 'Basic Plan',
+
+                    'commission' => $item->amount,
+
+                    'date'       => date('d M Y', strtotime($item->created_at)),
+                ];
+            });
+
+        return response()->json([
+            'status' => true,
+            'data'   => $earnings
         ]);
     }
 

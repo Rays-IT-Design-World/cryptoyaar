@@ -40,6 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/get-favourite-categories', [HomeController::class, 'getUserFavourite']);
     Route::get('/direct-member', [HomeController::class, 'directMembers']);
     Route::get('/team-member-lists', [HomeController::class, 'teamMembers']);
+    Route::get('/earning-list', [HomeController::class, 'earnings']);
 
     // category subcategory supersub category list 
     Route::get('/categoryList', [HomeController::class, 'getCategories']);
