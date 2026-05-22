@@ -31,7 +31,11 @@ class AdminConroller extends Controller
         $totalUsers = User::count();
         $totalCategory = Category::count();
         $totalStaff = Admin::Where('role_id', '3')->count();
-        return view('backend.dashboard', compact('totalUsers', 'totalCategory', 'totalStaff'));
+        $totalCompanyRevenue = DB::table('subscription_revenues')->sum('company_revenue');
+        $totalGST = DB::table('subscription_revenues')->sum('gst');
+        $totalCreatorPool = DB::table('subscription_revenues')->sum('creator_pool');
+        $totalReferral = DB::table('subscription_revenues')->sum('referral_amount');
+        return view('backend.dashboard', compact('totalUsers', 'totalCategory', 'totalStaff','totalCompanyRevenue','totalGST','totalCreatorPool','totalReferral'));
     }
 
 
@@ -187,16 +191,6 @@ class AdminConroller extends Controller
 
         return $ids;
     }
-
-
-
-
-
-
-
-
-
-
 
 
     public function userStore(Request $request)
@@ -598,4 +592,27 @@ class AdminConroller extends Controller
 
         return view('backend.plans.purchaselist', compact('plans'));
     }
+    public function revenue(){
+        $revenues = DB::table('subscription_revenues')
+            ->join('users', 'subscription_revenues.user_id', '=', 'users.id')
+            ->select(
+                'subscription_revenues.*',
+                'users.name as user_name'
+            )
+            ->latest()
+            ->get();
+        return view('backend.subscription_revenue',compact('revenues'));
+    
+    }
+
+    public function destroyrevenue($id)
+    {
+        DB::table('subscription_revenues')
+            ->where('id', $id)
+            ->delete();
+
+        return redirect()->back()
+            ->with('success', 'Revenue deleted successfully');
+    }
 }
+

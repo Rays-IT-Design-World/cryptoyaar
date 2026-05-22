@@ -36,6 +36,15 @@ class PlanController extends Controller
                 }
 
                 $plan = PlanModel::findOrFail($request->plan_id);
+                $subscriptionAmount = $plan->price;
+
+                $companyRevenue = round(($subscriptionAmount * 22) / 100, 2);
+
+                $gst = round(($subscriptionAmount * 18) / 100, 2);
+
+                $creatorPool = round(($subscriptionAmount * 25) / 100, 2);
+
+                $referralDistribution = round(($subscriptionAmount * 35) / 100, 2);
 
                 DB::table('user_plans')->insert([
                     'user_id' => $user->id,
@@ -43,6 +52,18 @@ class PlanController extends Controller
                     'payment_id' => 'admin-' . Str::random(10),
                     'expire_at' => now()->addDays(30),
                     'status' => 'paid',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                DB::table('subscription_revenues')->insert([
+                    'user_id' => $user->id,
+                    'subscription_amount' => $subscriptionAmount,
+                    'company_revenue' => $companyRevenue,
+                    'gst' => $gst,
+                    'creator_pool' => $creatorPool,
+                    'referral_amount' => $referralDistribution,
+
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
@@ -62,7 +83,8 @@ class PlanController extends Controller
                 );
 
                 if ($user->parent_id) {
-                    $this->distributeCommissionTree($user->id, $plan->price);
+                    // $this->distributeCommissionTree($user->id, $plan->price);
+                    $this->distributeCommissionTree($user->id, $subscriptionAmount);
                 }
             });
 

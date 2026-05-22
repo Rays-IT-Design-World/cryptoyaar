@@ -224,6 +224,13 @@
                                 <span>My Network</span>
                             </a>
                         </li>
+
+                        <li class="{{ request()->routeIs('subscription.revenue') ? 'mm-active' : '' }}">
+                            <a href="{{ route('subscription.revenue') }}" class="waves-effect">
+                                <i class='bx bxs-dashboard'></i>
+                                <span>Subscription Revenue</span>
+                            </a>
+                        </li>
                         
                         @if (auth('admin')->user()->hasPermission('enquiry-list'))
 
