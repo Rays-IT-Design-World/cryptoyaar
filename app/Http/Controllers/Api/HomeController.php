@@ -377,6 +377,25 @@ class HomeController extends Controller
         ]);
     }
 
+    public function walletBalance()
+    {
+        $user = auth()->user();
+
+        $wallet = Wallet::where('user_id', $user->id)->first();
+
+        return response()->json([
+
+            'status' => true,
+
+            'data' => [
+
+                'balance' => $wallet->balance ?? 0,
+
+                'locked_balance' => $wallet->locked_balance ?? 0,
+            ]
+        ]);
+    }
+
 
 
 }
