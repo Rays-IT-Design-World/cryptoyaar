@@ -32,49 +32,77 @@
 
 
 <script>
+
 let sessionIds = {};
 
 document.querySelectorAll('.video-player').forEach(video => {
 
     let videoId = video.dataset.id;
 
-    // 🔥 ek hi session id (page load pe)
-    sessionIds[videoId] = Date.now() + "_" + videoId;
+    sessionIds[videoId] =
+        Date.now() + "_" + videoId;
 
-    // ⏸ pause ya stop
     video.addEventListener('pause', function () {
         sendWatchTime(video);
     });
 
-    // ⏹ end
     video.addEventListener('ended', function () {
         sendWatchTime(video);
     });
 
 });
 
-// 📤 API call
-function sendWatchTime(video) {
+async function sendWatchTime(video) {
 
     let videoId = video.dataset.id;
-    let watchTime = Math.floor(video.currentTime); // 🔥 exact time
 
-    console.log("Time:", watchTime);
+    let watchTime =
+        Math.floor(video.currentTime);
 
-    // ❌ 30 sec se kam ignore
-    if (watchTime < 30) return;
+    console.log("Watch Time:", watchTime);
 
-    fetch('/api/watch_time', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            video_id: videoId,
-            watch_time: watchTime,
-            session_id: sessionIds[videoId]
-        })
-    });
+    if (watchTime < 30) {
+        return;
+    }
+
+    try {
+
+        let response = await fetch('/api/watch_time', {
+
+            method: 'POST',
+
+            headers: {
+
+                'Content-Type': 'application/json',
+
+                'X-CSRF-TOKEN':
+                    document.querySelector('meta[name="csrf-token"]').content,
+
+                'Accept': 'application/json'
+            },
+
+            body: JSON.stringify({
+
+                video_id: videoId,
+
+                watch_time: watchTime,
+
+                session_id: sessionIds[videoId],
+
+                device_id: 'test_device',
+
+                traffic_source: 'organic'
+            })
+        });
+
+        let data = await response.json();
+
+        console.log(data);
+
+    } catch (error) {
+
+        console.log(error);
+    }
 }
 </script>
 @endsection

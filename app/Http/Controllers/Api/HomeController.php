@@ -17,6 +17,7 @@ use App\Models\ReferralCommission;
 use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class HomeController extends Controller
 {
@@ -113,44 +114,7 @@ class HomeController extends Controller
         ]);
     }
 
-    public function storeWatchTime(Request $request)
-    {
-        $userId = auth()->user();
-
-        if ($request->watch_time < 30) {
-            return response()->json(['status' => false]);
-        }
-
-        $existing = DB::table('video_views')
-            ->where('user_id', $userId)
-            ->where('video_id', $request->video_id)
-            ->first();
-
-        if ($existing) {
-
-            if ($request->watch_time > $existing->watch_time) {
-
-                DB::table('video_views')
-                    ->where('id', $existing->id)
-                    ->update([
-                        'watch_time' => $request->watch_time,
-                        'updated_at' => now()
-                    ]);
-            }
-
-        } else {
-
-            DB::table('video_views')->insert([
-                'user_id' => $userId,
-                'video_id' => $request->video_id,
-                'watch_time' => $request->watch_time,
-                'is_valid' => 1,
-                'created_at' => now()
-            ]);
-        }
-
-        return response()->json(['status' => true]);
-    }
+   
 
     public function saveUserFavourite(Request $request)
     {
@@ -202,6 +166,187 @@ class HomeController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Categories updated successfully'
+        ]);
+    } 
+
+    // public function storeWatchTime(Request $request)
+    // {
+    //     $userId = auth()->user();
+
+    //     if ($request->watch_time < 30) {
+    //         return response()->json(['status' => false]);
+    //     }
+
+    //     $existing = DB::table('video_views')
+    //         ->where('user_id', $userId)
+    //         ->where('video_id', $request->video_id)
+    //         ->first();
+
+    //     if ($existing) {
+
+    //         if ($request->watch_time > $existing->watch_time) {
+
+    //             DB::table('video_views')
+    //                 ->where('id', $existing->id)
+    //                 ->update([
+    //                     'watch_time' => $request->watch_time,
+    //                     'updated_at' => now()
+    //                 ]);
+    //         }
+
+    //     } else {
+
+    //         DB::table('video_views')->insert([
+    //             'user_id' => $userId,
+    //             'video_id' => $request->video_id,
+    //             'watch_time' => $request->watch_time,
+    //             'is_valid' => 1,
+    //             'created_at' => now()
+    //         ]);
+    //     }
+
+    //     return response()->json(['status' => true]);
+    // }
+
+    public function storeWatchTime(Request $request)
+    {
+        $user = auth()->user();
+        
+
+        $video = VideoModel::findOrFail($request->video_id);
+
+        $watchTime = $request->watch_time;
+
+        if ($watchTime < 30) {
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Minimum watch time required'
+            ]);
+        }
+
+
+        if ($user->id == $video->creator_id) {
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Self view not allowed'
+            ]);
+        }
+
+
+        $todayWatch = DB::table('video_views')
+
+            ->where('user_id', $user->id)
+
+            ->where('video_id', $video->id)
+
+            ->whereDate('created_at', today())
+
+            ->sum('watch_time');
+
+        if (($todayWatch + $watchTime) > 1200){
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Daily watch limit reached'
+            ]);
+        }
+
+        $sameIpViews = DB::table('video_views')
+
+            ->where('ip_address', $request->ip())
+
+            ->where('video_id', $video->id)
+
+            ->whereDate('created_at', today())
+
+            ->count();
+
+        $isFlagged = false;
+
+        $fraudReason = null;
+
+        if ($sameIpViews > 20) {
+
+            $isFlagged = true;
+
+            $fraudReason = 'High duplicate IP activity';
+        }
+
+
+        $accountAgeHours =
+            now()->diffInHours($user->created_at);
+
+        $fraudScore = 0;
+
+        if ($accountAgeHours < 24) {
+
+            $fraudScore += 20;
+        }
+
+        $completionRate = 0;
+
+        if ($video->duration > 0) {
+
+            $completionRate = min(
+                ($watchTime / $video->duration) * 100,
+                100
+            );
+        }
+
+
+        $watchId = DB::table('video_views')->insertGetId([
+
+            'user_id' => $user->id,
+
+            'video_id' => $video->id,
+
+            'session_id' => Str::uuid(),
+
+            'watch_time' => $watchTime,
+
+            'ip_address' => $request->ip(),
+
+            'device_id' => $request->device_id,
+
+            'completion_rate' => $completionRate,
+
+            'traffic_source' =>
+                $request->traffic_source,
+
+            'is_valid' => 1,
+
+            'is_flagged' => $isFlagged,
+
+            'fraud_score' => $fraudScore,
+
+            'fraud_reason' => $fraudReason,
+
+            'created_at' => now(),
+
+            'updated_at' => now(),
+        ]);
+
+
+        if ($isFlagged) {
+
+            DB::table('watch_flags')->insert([
+
+                'watch_id' => $watchId,
+
+                'reason' => $fraudReason,
+
+                'severity' => 'medium',
+
+                'created_at' => now(),
+
+                'updated_at' => now(),
+            ]);
+        }
+
+        return response()->json([
+            'status' => true
         ]);
     }
 
