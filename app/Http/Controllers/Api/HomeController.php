@@ -212,7 +212,6 @@ class HomeController extends Controller
     {
         $user = auth()->user();
         
-
         $video = VideoModel::findOrFail($request->video_id);
 
         $watchTime = $request->watch_time;

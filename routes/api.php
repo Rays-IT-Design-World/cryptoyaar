@@ -58,6 +58,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/creator-request-status', [CreatorController::class, 'status']);
     Route::get('/video/list', [CreatorController::class, 'myVideos']);
     Route::get('/videoViewsList', [CreatorController::class, 'viewsList']);
+    Route::get('/creator-payout-summary', [CreatorController::class, 'creatorPayoutSummary']);
+
     
    
 
@@ -82,11 +84,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user/referral', [ReferralController::class, 'referralUser']);
     Route::post('/refund', [RefundController::class, 'refund']);
     Route::get('/my-network', [ReferralController::class, 'myNetwork']);
+    Route::post('/watch_time', [HomeController::class, 'storeWatchTime'])->name('store-watch-time');
 });
 
 Route::post('/send-otp',[AuthController::class,'sendOtp']);
 Route::post('/verify-otp',[AuthController::class,'verifyOtp']);
-    Route::post('/watch_time', [HomeController::class, 'storeWatchTime'])->name('store-watch-time');
 
 
 

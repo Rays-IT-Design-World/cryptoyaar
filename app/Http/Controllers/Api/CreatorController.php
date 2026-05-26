@@ -8,6 +8,7 @@ use App\Models\CreatorRequest;
 use App\Models\VideoModel;
 use App\Models\VideoView;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 
 class CreatorController extends Controller
@@ -166,8 +167,6 @@ class CreatorController extends Controller
     }
 
 
-    
-
     public function viewsList()
     {
         $videoIds = VideoModel::where('creator_id', Auth::id())
@@ -200,8 +199,69 @@ class CreatorController extends Controller
         ]);
     }
 
+    public function creatorPayoutSummary()
+    {
+        $creatorId = Auth::id();
 
 
+        $currentMonthPayout = DB::table('creator_payouts')
 
-    
+            ->where('creator_id', $creatorId)
+
+            ->where('month', now()->month)
+
+            ->where('year', now()->year)
+
+            ->sum('payout_amount');
+
+
+        $lastMonthPayout = DB::table('creator_payouts')
+
+            ->where('creator_id', $creatorId)
+
+            ->where('month', now()->subMonth()->month)
+
+            ->where('year', now()->subMonth()->year)
+
+            ->sum('payout_amount');
+
+
+        $totalPayout = DB::table('creator_payouts')
+
+            ->where('creator_id', $creatorId)
+
+            ->sum('payout_amount');
+
+
+        $currentMonthWatchTime = DB::table('creator_payouts')
+
+            ->where('creator_id', $creatorId)
+
+            ->where('month', now()->month)
+
+            ->where('year', now()->year)
+
+            ->sum('total_watch_time');
+
+        return response()->json([
+
+            'status' => true,
+
+            'data' => [
+
+                'current_month_payout' =>
+                    round($currentMonthPayout, 2),
+
+                'last_month_payout' =>
+                    round($lastMonthPayout, 2),
+
+                'total_payout' =>
+                    round($totalPayout, 2),
+
+                'current_month_watch_time' =>
+                    $currentMonthWatchTime,
+            ]
+        ]);
+    }
+
 }

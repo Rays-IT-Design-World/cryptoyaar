@@ -15,6 +15,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+        $schedule->command('creator:payout')
+            //  ->everyMinute();
+            ->monthlyOn(1, '00:10');
+
         $schedule->call(function () {
 
             WalletTransaction::where('is_locked', true)
@@ -65,4 +69,6 @@ class Kernel extends ConsoleKernel
 
         require base_path('routes/console.php');
     }
+
+
 }

@@ -614,5 +614,172 @@ class AdminConroller extends Controller
         return redirect()->back()
             ->with('success', 'Revenue deleted successfully');
     }
+
+    public function calculateCreatorPayout()
+    {
+        $month = now()->subMonth()->month;
+
+        $year = now()->subMonth()->year;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Creator Pool
+        |--------------------------------------------------------------------------
+        */
+
+        $creatorPool = DB::table('subscription_revenues')
+
+            ->whereMonth('created_at', $month)
+
+            ->whereYear('created_at', $year)
+
+            ->sum('creator_pool');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Platform Total Watch Time
+        |--------------------------------------------------------------------------
+        */
+
+        $platformWatchTime = DB::table('video_views')
+
+            ->where('is_valid', 1)
+
+            ->where('is_flagged', 0)
+
+            ->whereMonth('created_at', $month)
+
+            ->whereYear('created_at', $year)
+
+            ->sum('watch_time');
+
+        if ($platformWatchTime <= 0) {
+
+            return "No valid platform watch time";
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Creators
+        |--------------------------------------------------------------------------
+        */
+
+        $creators = VideoModel::select('creator_id')
+            ->distinct()
+            ->get();
+
+        foreach ($creators as $creator) {
+
+            $videoIds = VideoModel::where(
+                'creator_id',
+                $creator->creator_id
+            )->pluck('id');
+
+            /*
+            |--------------------------------------------------------------------------
+            | Creator Watch Time
+            |--------------------------------------------------------------------------
+            */
+
+            $creatorWatchTime = DB::table('video_views')
+
+                ->whereIn('video_id', $videoIds)
+
+                ->where('is_valid', 1)
+
+                ->where('is_flagged', 0)
+
+                ->whereMonth('created_at', $month)
+
+                ->whereYear('created_at', $year)
+
+                ->sum('watch_time');
+
+            if ($creatorWatchTime <= 0) {
+                continue;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Duplicate Protection
+            |--------------------------------------------------------------------------
+            */
+
+            $exists = DB::table('creator_payouts')
+
+                ->where('creator_id', $creator->creator_id)
+
+                ->where('month', $month)
+
+                ->where('year', $year)
+
+                ->exists();
+
+            if ($exists) {
+                continue;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Formula
+            |--------------------------------------------------------------------------
+            */
+
+            $grossAmount =
+                ($creatorWatchTime / $platformWatchTime)
+                * $creatorPool;
+
+            /*
+            |--------------------------------------------------------------------------
+            | Minimum ₹500
+            |--------------------------------------------------------------------------
+            */
+
+            if ($grossAmount < 500) {
+                continue;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Save
+            |--------------------------------------------------------------------------
+            */
+
+            DB::table('creator_payouts')->insert([
+
+                'creator_id' => $creator->creator_id,
+
+                'total_watch_time' =>
+                    $creatorWatchTime,
+
+                'payout_amount' =>
+                    round($grossAmount, 2),
+
+                'month' => $month,
+
+                'year' => $year,
+
+                'created_at' => now(),
+
+                'updated_at' => now(),
+            ]);
+        }
+
+        return "Payout calculated successfully";
+    }
+
+    public function creatorPayoutList()
+    {
+        $payouts = DB::table('creator_payouts')
+            ->join('users', 'creator_payouts.creator_id', '=', 'users.id')
+            ->select(
+                'creator_payouts.*',
+                'users.name as creator_name'
+            )
+            ->latest()
+            ->get();
+            return view('backend.creator.creator_payout',compact('payouts')
+        );
+    }
 }
 

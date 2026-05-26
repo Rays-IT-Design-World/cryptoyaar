@@ -4,10 +4,10 @@
     <head>
         
         <meta charset="utf-8" />
-        <title>Login | CRYPTO - SEEKHO</title>
+        <title>Login | CRYPTOYAAR - CRYPTO SEEKHO</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta content="CSV - Centre of Science For Villages" name="description" />
-        <meta content="CSV - Centre of Science For Villages" name="author" />
+        <meta content="Crypto - Cryptoyaar" name="description" />
+        <meta content="Crypto - Cryptoyaar" name="author" />
         <!-- App favicon -->
         <link rel="shortcut icon" href="{{asset('/assets/admin/images/favicon.ico')}}">
 
@@ -36,10 +36,10 @@
                         <!-- Logo Section -->
                         <div class="mb-4">
                             <a href="#" class="auth-logo d-inline-block mb-2">
-                                <img src="{{ asset('/public/assets/img/rays.png') }}" alt="CRYPTO Logo" height="40">
+                                <img src="{{ asset('/assets/img/cryptoyaar.png') }}" alt="CRYPTO Logo" height="40">
                             </a>
                             <p class="font-size-15 text-muted mb-0">
-                                <strong>CRYPTO</strong> Admin Dashboard
+                                <strong>CRYPTOYAAR</strong> Admin Dashboard
                             </p>
                         </div>
 
