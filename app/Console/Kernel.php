@@ -7,6 +7,7 @@ use App\Models\WalletTransaction;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\DB;
+// use Illuminate\Support\Facades\Log;
 
 class Kernel extends ConsoleKernel
 {
@@ -18,6 +19,31 @@ class Kernel extends ConsoleKernel
         $schedule->command('creator:payout')
             //  ->everyMinute();
             ->monthlyOn(1, '00:10');
+
+        $schedule->call(function () {
+
+            \Log::info('Plan expire cron running');
+
+            DB::table('user_plans')
+
+                ->where('status', 'paid')
+
+                ->where('expire_at', '<', now())
+
+                ->update([
+
+                    'status' => 'expired',
+
+                    'updated_at' => now()
+                ]);
+
+        })
+
+        ->name('plan_expire_cron')
+
+        ->everyMinute()
+
+        ->withoutOverlapping();   
 
         $schedule->call(function () {
 
