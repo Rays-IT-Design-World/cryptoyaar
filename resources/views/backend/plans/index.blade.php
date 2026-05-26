@@ -148,7 +148,7 @@
     </div>
 </div>
 
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    {{-- <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
         document.querySelectorAll('.pay-btn').forEach(button => {
             button.addEventListener('click', function () {
@@ -220,6 +220,126 @@
 
                 });
 
+            });
+        });
+    </script> --}}
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        document.querySelectorAll('.pay-btn').forEach(button => {
+
+            button.addEventListener('click', function () {
+
+                let planId = this.dataset.planId;
+
+                fetch('/api/create-order', {
+
+                    method: 'POST',
+
+                    headers: {
+
+                        'Content-Type': 'application/json',
+
+                        'Accept': 'application/json',
+
+                        'X-CSRF-TOKEN':
+                        document.querySelector(
+                            'meta[name="csrf-token"]'
+                        ).content
+                    },
+
+                    body: JSON.stringify({
+
+                        plan_id: planId
+                    })
+                })
+
+                .then(res => res.json())
+
+                .then(data => {
+
+                    if (data.status) {
+
+                        let options = {
+
+                            key: data.key,
+
+                            amount: data.amount * 100,
+
+                            currency: "INR",
+
+                            name:
+                                "{{ auth()->user()->name }}",
+
+                            description: "Plan Purchase",
+
+                            order_id: data.order_id,
+
+                            handler: function (response)
+                            {
+                                fetch('/api/verify-payment', {
+
+                                    method: 'POST',
+
+                                    headers: {
+
+                                        'Content-Type':
+                                            'application/json',
+
+                                        'Accept':
+                                            'application/json',
+
+                                        'X-CSRF-TOKEN':
+                                        document.querySelector(
+                                            'meta[name="csrf-token"]'
+                                        ).content
+                                    },
+
+                                    body: JSON.stringify({
+
+                                        razorpay_order_id:
+                                        response.razorpay_order_id,
+
+                                        razorpay_payment_id:
+                                        response.razorpay_payment_id,
+
+                                        razorpay_signature:
+                                        response.razorpay_signature,
+
+                                        plan_id: planId
+                                    })
+                                })
+
+                                .then(res => res.json())
+
+                                .then(result => {
+
+                                    if (result.status) {
+
+                                        alert(
+                                            "Payment Successful 🎉"
+                                        );
+
+                                        location.reload();
+
+                                    } else {
+
+                                        alert(result.message);
+                                    }
+                                });
+                            },
+
+                            theme: {
+                                color: "#3399cc"
+                            }
+                        };
+
+                        let rzp1 =
+                            new Razorpay(options);
+
+                        rzp1.open();
+                    }
+                });
             });
         });
     </script>

@@ -60,15 +60,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/videoViewsList', [CreatorController::class, 'viewsList']);
     Route::get('/creator-payout-summary', [CreatorController::class, 'creatorPayoutSummary']);
 
+    Route::post('/create-order',[PlanController::class, 'createOrder']);
+    Route::post('/verify-payment',[PlanController::class, 'verifyPayment']);
+    Route::post('/pucreate-orderrchase-plan',[PlanController::class, 'purchase']);
     
-   
 
 
     //   plans plan purchase  faq
     Route::get('/plan-list', [HomeController::class, 'planfetch']);
     // Route::post('/create-order', [PaymentController::class, 'createOrder']);
     // Route::post('/verify-payment', [PaymentController::class, 'verifyPayment']);
-    Route::post('/plan/purchase', [PlanController::class, 'purchase']);
+    // Route::post('/plan/purchase', [PlanController::class, 'purchase']);
     Route::get('/payment_history', [BankDetailController::class, 'purchaseHistory']);
     Route::get('/faqs', [HomeController::class, 'faqList']);
 
