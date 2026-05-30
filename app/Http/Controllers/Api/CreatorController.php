@@ -99,7 +99,7 @@ class CreatorController extends Controller
             'title'       => 'nullable|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'keywords' => 'nullable|string|max:500',
-            'video_path'       => 'required|mimes:mp4,mkv,avi,webm|max:512000',
+            'video_path'  => 'required|mimes:mp4,mkv,avi,webm|max:512000',
             'thumbnail'   => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
             'is_free'     => 'required|boolean',
             'plan_id'     => 'required_if:is_free,0|nullable|exists:plans,id',
