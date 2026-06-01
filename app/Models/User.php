@@ -32,7 +32,8 @@ class User extends Authenticatable
         'role',
         'occupation',
         'password',
-        'is_profile_completed'
+        'is_profile_completed',
+        'refresh_token'
     ];
 
     /**

@@ -87,10 +87,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/refund', [RefundController::class, 'refund']);
     Route::get('/my-network', [ReferralController::class, 'myNetwork']);
     Route::post('/watch_time', [HomeController::class, 'storeWatchTime'])->name('store-watch-time');
+
+    Route::post('/logout', [AuthController::class,'logout']);
 });
 
 Route::post('/send-otp',[AuthController::class,'sendOtp']);
 Route::post('/verify-otp',[AuthController::class,'verifyOtp']);
-
+Route::post('/refresh-token', [AuthController::class,'refreshToken']);
 
 
